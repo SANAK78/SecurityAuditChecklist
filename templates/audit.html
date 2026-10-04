@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enterprise Security Audit Checklist Console</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-base: #040711;
+            --panel-surface: rgba(13, 22, 41, 0.8);
+            --card-surface: rgba(22, 34, 59, 0.55);
+            --border-subtle: rgba(56, 189, 248, 0.16);
+            --border-highlight: rgba(56, 189, 248, 0.4);
+            --accent-cyan: #38bdf8;
+            --accent-green: #10b981;
+            --accent-red: #ef4444;
+            --accent-amber: #f59e0b;
+            --text-heading: #f8fafc;
+            --text-secondary: #94a3b8;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
+        body {
+            background-color: var(--bg-base);
+            color: var(--text-heading);
+            min-height: 100vh;
+            padding: 30px 16px;
+            display: flex;
+            justify-content: center;
+        }
+        .console-container {
+            width: 100%;
+            max-width: 940px;
+            background: var(--panel-surface);
+            border: 1px solid var(--border-subtle);
+            border-radius: 26px;
+            padding: 36px 38px;
+            backdrop-filter: blur(25px);
+            box-shadow: 0 35px 80px -20px rgba(0,0,0,0.85);
+        }
+        /* Top Navigation */
+        .top-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--border-subtle);
+            margin-bottom: 26px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        .auditor-badge {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.88rem;
+            color: var(--text-heading);
+        }
+        .status-dot { width: 8px; height: 8px; background: var(--accent-green); border-radius: 50%; box-shadow: 0 0 10px var(--accent-green); }
+        .btn-logout {
+            padding: 6px 14px;
+            border-radius: 10px;
+            background: rgba(239, 68, 68, 0.12);
+            border: 1px solid rgba(239, 68, 68, 0.25);
+            color: #fca5a5;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-decoration: none;
+        }
+        /* Target Metadata Grid */
+        .meta-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 16px;
+            margin-bottom: 28px;
+        }
+        .form-group label { display: block; font-size: 0.74rem; font-weight: 700; color: #bae6fd; margin-bottom: 6px; letter-spacing: 0.05em; }
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 12px 14px;
+            background: rgba(6, 9, 19, 0.85);
+            border: 1px solid var(--border-subtle);
+            border-radius: 12px;
+            color: #fff;
+            font-size: 0.9rem;
+            outline: none;
+        }
+        .form-group input:focus { border-color: var(--accent-cyan); }
+        /* Checklist Section */
+        .section-header { font-size: 1.15rem; font-weight: 800; color: var(--accent-cyan); margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+        .checklist-items { display: flex; flex-direction: column; gap: 14px; margin-bottom: 28px; }
+        .check-card {
+            background: var(--card-surface);
+            border: 1px solid var(--border-subtle);
+            border-radius: 16px;
+            padding: 18px 20px;
+            display: flex;
+            align-items: flex-start;
+            gap: 16px;
+            transition: all 0.2s ease;
+        }
+        .check-card:hover { border-color: var(--border-highlight); background: rgba(22, 34, 59, 0.75); }
+        .check-card input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            margin-top: 3px;
+            accent-color: var(--accent-cyan);
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+        .check-content h4 { font-size: 0.96rem; font-weight: 700; margin-bottom: 4px; color: #f1f5f9; }
+        .check-content p { font-size: 0.82rem; color: var(--text-secondary); line-height: 1.45; }
+        .weight-pill { font-family: 'JetBrains Mono', monospace; font-size: 0.72rem; color: var(--accent-cyan); margin-left: 8px; }
+        .btn-evaluate {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, var(--accent-cyan), #3b82f6);
+            border: none;
+            border-radius: 14px;
+            color: #fff;
+            font-weight: 800;
+            font-size: 0.98rem;
+            cursor: pointer;
+            box-shadow: 0 8px 25px -5px rgba(56, 189, 248, 0.4);
+            transition: all 0.2s ease;
+        }
+        .btn-evaluate:hover { filter: brightness(1.1); transform: translateY(-1px); }
+        /* Report Modal / Section */
+        .report-box {
+            display: none;
+            margin-top: 32px;
+            background: rgba(15, 23, 42, 0.9);
+            border: 1px solid var(--border-highlight);
+            border-radius: 20px;
+            padding: 28px;
+            animation: fadeIn 0.4s ease;
+        }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .score-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 16px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            margin-bottom: 20px;
+        }
+        .score-badge { font-size: 2.2rem; font-weight: 800; font-family: 'JetBrains Mono', monospace; }
+        .risk-badge { padding: 6px 14px; border-radius: 100px; font-weight: 800; font-size: 0.85rem; letter-spacing: 0.04em; }
+        .remedy-list { margin-top: 14px; display: flex; flex-direction: column; gap: 12px; }
+        .remedy-card {
+            background: rgba(239, 68, 68, 0.08);
+            border: 1px solid rgba(239, 68, 68, 0.25);
+            border-radius: 12px;
+            padding: 14px 16px;
+            font-size: 0.84rem;
+        }
+        .remedy-card strong { color: #fca5a5; display: block; margin-bottom: 4px; }
+        .remedy-card span { color: var(--text-secondary); }
+    </style>
+</head>
+<body>
+    <div class="console-container">
+        <!-- Top Nav -->
+        <div class="top-nav">
+            <div class="auditor-badge">
+                <span class="status-dot"></span>
+                <span>Active Auditor: <strong>{{ auditor }}</strong> (NIST/CIS Operator)</span>
+            </div>
+            <a href="/logout" class="btn-logout">Terminate Session</a>
+        </div>
+
+        <!-- Scope and Target Validation -->
+        <div class="meta-grid">
+            <div class="form-group">
+                <label>TARGET SYSTEM (HOSTNAME / IP / DOMAIN)</label>
+                <input type="text" id="targetSystem" placeholder="api-cluster.internal.net" value="core-prod-server.internal">
+            </div>
+            <div class="form-group">
+                <label>AUDIT SCOPE LEVEL</label>
+                <select id="scopeLevel">
+                    <option value="Enterprise Production">Enterprise Production</option>
+                    <option value="Cloud Infrastructure">Cloud Infrastructure</option>
+                    <option value="DMZ / Perimeter">DMZ / Perimeter</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Security Checklist Controls -->
+        <div class="section-header">
+            <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"></path><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg>
+            Baseline Security Controls Evaluation
+        </div>
+
+        <div class="checklist-items">
+            {% for ctrl in controls %}
+            <div class="check-card">
+                <input type="checkbox" id="{{ ctrl.id }}" class="audit-check">
+                <div class="check-content">
+                    <h4>{{ ctrl.title }} <span class="weight-pill">({{ ctrl.weight }} pts)</span></h4>
+                    <p>{{ ctrl.desc }}</p>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <button class="btn-evaluate" onclick="evaluateAudit()">EXECUTE AUDIT COMPLIANCE ENGINE</button>
+
+        <!-- Evaluation Report Output -->
+        <div id="reportBox" class="report-box">
+            <div class="score-row">
+                <div>
+                    <span style="font-size: 0.8rem; color: var(--text-secondary); text-transform: uppercase;">Overall Compliance Rating</span>
+                    <div id="scoreText" class="score-badge">0%</div>
+                </div>
+                <div>
+                    <div id="riskBadge" class="risk-badge">EVALUATING</div>
+                </div>
+            </div>
+
+            <h4 style="font-size: 0.95rem; color: #bae6fd; margin-bottom: 8px;">Actionable Remediation Guidance (Awareness Roadmap):</h4>
+            <div id="remediationZone" class="remedy-list"></div>
+        </div>
+    </div>
+
+    <script>
+        async function evaluateAudit() {
+            const targetVal = document.getElementById('targetSystem').value.trim();
+            const scopeVal = document.getElementById('scopeLevel').value;
+            const checkboxes = document.querySelectorAll('.audit-check');
+
+            if (!targetVal) {
+                alert("Target system cannot be empty!");
+                return;
+            }
+
+            const answers = {};
+            checkboxes.forEach(cb => {
+                answers[cb.id] = cb.checked;
+            });
+
+            try {
+                const response = await fetch('/submit-audit', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        target: targetVal,
+                        scope: scopeVal,
+                        answers: answers
+                    })
+                });
+
+                const data = await response.json();
+                if (data.error) {
+                    alert(data.error);
+                    return;
+                }
+
+                // Render Report
+                const reportBox = document.getElementById('reportBox');
+                const scoreText = document.getElementById('scoreText');
+                const riskBadge = document.getElementById('riskBadge');
+                const remedyZone = document.getElementById('remediationZone');
+
+                reportBox.style.display = 'block';
+                scoreText.textContent = data.score + '%';
+                scoreText.style.color = data.risk_color;
+
+                riskBadge.textContent = data.risk_level;
+                riskBadge.style.background = data.risk_color + '22';
+                riskBadge.style.border = '1px solid ' + data.risk_color;
+                riskBadge.style.color = data.risk_color;
+
+                remedyZone.innerHTML = '';
+                if (data.remediations.length === 0) {
+                    remedyZone.innerHTML = '<div style="color: #6ee7b7; font-size: 0.88rem; padding: 12px; background: rgba(16,185,129,0.1); border-radius: 10px;">✓ Exceptional Security Posture. Zero high-priority deficiencies detected against CIS controls.</div>';
+                } else {
+                    data.remediations.forEach(r => {
+                        const div = document.createElement('div');
+                        div.className = 'remedy-card';
+                        div.innerHTML = `<strong>FAILED: ${r.title}</strong><span>Remediation Action: ${r.remediation}</span>`;
+                        remedyZone.appendChild(div);
+                    });
+                }
+
+                reportBox.scrollIntoView({ behavior: 'smooth' });
+
+            } catch (err) {
+                console.error("Evaluation error:", err);
+            }
+        }
+    </script>
+</body>
+</html>
